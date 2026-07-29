@@ -1,33 +1,35 @@
-import { ProductRepositoryMongo } from "../repositories/product.repository";
-import { CategoryRepositoryMongo } from "../repositories/category.repository";
-import { BrandRepositoryMongo } from "../repositories/brand.repository";
-import { NotificationRepositoryMongo } from "../repositories/notification.repository";
-import { UserRepositoryMongo } from "../repositories/user.repository";
+import { IProductRepository } from "../repositories/product.repository";
+import { ICategoryRepository } from "../repositories/category.repository";
+import { IBrandRepository } from "../repositories/brand.repository";
+import { INotificationRepository } from "../repositories/notification.repository";
+import { IUserRepository } from "../repositories/user.repository";
 import { CreateProductDTO, UpdateProductDTO, ListProductsQueryDTO } from "../dtos/product.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 import { CLIENT_URL, GEMINI_API_KEY, GEMINI_MODEL } from "../configs/constant";
 
-const productRepoInstance = new ProductRepositoryMongo();
-const categoryRepoInstance = new CategoryRepositoryMongo();
-const brandRepoInstance = new BrandRepositoryMongo();
-const notificationRepoInstance = new NotificationRepositoryMongo();
-const userRepoInstance = new UserRepositoryMongo();
-
 export class ProductService {
+  constructor(
+    private readonly productRepo: IProductRepository,
+    private readonly categoryRepo: ICategoryRepository,
+    private readonly brandRepo: IBrandRepository,
+    private readonly notificationRepo: INotificationRepository,
+    private readonly userRepo: IUserRepository
+  ) {}
+
   async listProducts(query: ListProductsQueryDTO) {
     let categoryId: string | undefined;
     let brandId: string | undefined;
 
     if (query.category) {
-      const category = await categoryRepoInstance.findBySlug(query.category);
+      const category = await this.categoryRepo.findBySlug(query.category);
       categoryId = category?._id.toString() || "__none__";
     }
     if (query.brand) {
-      const brand = await brandRepoInstance.findBySlug(query.brand);
+      const brand = await this.brandRepo.findBySlug(query.brand);
       brandId = brand?._id.toString() || "__none__";
     }
 
-    return await productRepoInstance.findAll({
+    return await this.productRepo.findAll({
       categoryId,
       brandId,
       search: query.search,
@@ -45,7 +47,7 @@ export class ProductService {
       throw new CustomHttpException(500, "Gemini API key is not configured");
     }
 
-    const products = await productRepoInstance.findAll({});
+    const products = await this.productRepo.findAll({});
     const inventory = products.slice(0, 80).map((product) => ({
       id: product._id.toString(),
       name: product.name,
@@ -60,7 +62,7 @@ export class ProductService {
     }));
 
     const instruction = `
-You are the Luxe Spirits liquor search assistant.
+You are the Liquor Hub liquor search assistant.
 Use only this inventory. Return JSON only, no markdown.
 Choose up to 8 product ids that best match the customer request.
 JSON shape:
@@ -114,7 +116,7 @@ Inventory: ${JSON.stringify(inventory)}
   }
 
   async getProductBySlug(slug: string) {
-    const product = await productRepoInstance.findBySlug(slug);
+    const product = await this.productRepo.findBySlug(slug);
     if (!product) {
       throw new CustomHttpException(404, "Product not found");
     }
@@ -122,13 +124,13 @@ Inventory: ${JSON.stringify(inventory)}
   }
 
   async getProductsByIds(ids: string[]) {
-    return await productRepoInstance.findByIds(ids);
+    return await this.productRepo.findByIds(ids);
   }
 
   private async assertCategoryAndBrandExist(categoryId: string, brandId: string) {
     const [category, brand] = await Promise.all([
-      categoryRepoInstance.findById(categoryId),
-      brandRepoInstance.findById(brandId)
+      this.categoryRepo.findById(categoryId),
+      this.brandRepo.findById(brandId)
     ]);
     if (!category) throw new CustomHttpException(400, "Category not found");
     if (!brand) throw new CustomHttpException(400, "Brand not found");
@@ -136,21 +138,21 @@ Inventory: ${JSON.stringify(inventory)}
 
   async createProduct(data: CreateProductDTO) {
     await this.assertCategoryAndBrandExist(data.categoryId, data.brandId);
-    const product = await productRepoInstance.create(data);
+    const product = await this.productRepo.create(data);
     await this.notifyUsersAboutNewProduct(product.name, product.slug);
     return product;
   }
 
   private async notifyUsersAboutNewProduct(productName: string, slug: string) {
-    const users = await userRepoInstance.findAll();
+    const users = await this.userRepo.findAll();
     const activeCustomers = users.filter((user) => user.role === "user" && user.isActive);
     if (activeCustomers.length === 0) return;
 
-    await notificationRepoInstance.createMany(
+    await this.notificationRepo.createMany(
       activeCustomers.map((user) => ({
         userId: user._id,
         title: "New liquor added",
-        message: `${productName} is now available in Luxe Spirits.`,
+        message: `${productName} is now available in Liquor Hub.`,
         href: `${CLIENT_URL}/product/${slug}`
       } as any))
     );
@@ -158,7 +160,7 @@ Inventory: ${JSON.stringify(inventory)}
 
   async updateProduct(id: string, updates: UpdateProductDTO) {
     if (updates.categoryId || updates.brandId) {
-      const existing = await productRepoInstance.findById(id);
+      const existing = await this.productRepo.findById(id);
       if (!existing) {
         throw new CustomHttpException(404, "Product not found");
       }
@@ -168,7 +170,7 @@ Inventory: ${JSON.stringify(inventory)}
       );
     }
 
-    const updated = await productRepoInstance.updateById(id, updates);
+    const updated = await this.productRepo.updateById(id, updates);
     if (!updated) {
       throw new CustomHttpException(404, "Product not found");
     }
@@ -176,7 +178,7 @@ Inventory: ${JSON.stringify(inventory)}
   }
 
   async deleteProduct(id: string) {
-    const deleted = await productRepoInstance.deleteById(id);
+    const deleted = await this.productRepo.deleteById(id);
     if (!deleted) {
       throw new CustomHttpException(404, "Product not found");
     }

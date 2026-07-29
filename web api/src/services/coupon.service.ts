@@ -1,24 +1,24 @@
-import { CouponRepositoryMongo } from "../repositories/coupon.repository";
+import { ICouponRepository } from "../repositories/coupon.repository";
 import { CreateCouponDTO, UpdateCouponDTO } from "../dtos/coupon.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 
-const couponRepoInstance = new CouponRepositoryMongo();
-
 export class CouponService {
+  constructor(private readonly couponRepo: ICouponRepository) {}
+
   async listCoupons() {
-    return await couponRepoInstance.findAll();
+    return await this.couponRepo.findAll();
   }
 
   async createCoupon(data: CreateCouponDTO) {
-    const existing = await couponRepoInstance.findByCode(data.code);
+    const existing = await this.couponRepo.findByCode(data.code);
     if (existing) {
       throw new CustomHttpException(400, "A coupon with this code already exists");
     }
-    return await couponRepoInstance.create(data);
+    return await this.couponRepo.create(data);
   }
 
   async updateCoupon(id: string, updates: UpdateCouponDTO) {
-    const updated = await couponRepoInstance.updateById(id, updates);
+    const updated = await this.couponRepo.updateById(id, updates);
     if (!updated) {
       throw new CustomHttpException(404, "Coupon not found");
     }
@@ -26,7 +26,7 @@ export class CouponService {
   }
 
   async deleteCoupon(id: string) {
-    const deleted = await couponRepoInstance.deleteById(id);
+    const deleted = await this.couponRepo.deleteById(id);
     if (!deleted) {
       throw new CustomHttpException(404, "Coupon not found");
     }
@@ -34,7 +34,7 @@ export class CouponService {
   }
 
   async applyCoupon(code: string, subtotal: number) {
-    const coupon = await couponRepoInstance.findByCode(code);
+    const coupon = await this.couponRepo.findByCode(code);
     if (!coupon) {
       throw new CustomHttpException(404, "Invalid coupon code");
     }

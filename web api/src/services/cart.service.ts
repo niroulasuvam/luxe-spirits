@@ -1,10 +1,7 @@
-import { CartRepositoryMongo } from "../repositories/cart.repository";
-import { ProductRepositoryMongo } from "../repositories/product.repository";
+import { ICartRepository } from "../repositories/cart.repository";
+import { IProductRepository } from "../repositories/product.repository";
 import { CustomHttpException } from "../exceptions/http-exception";
 import { ICartDocument } from "../models/cart.model";
-
-const cartRepoInstance = new CartRepositoryMongo();
-const productRepoInstance = new ProductRepositoryMongo();
 
 function toCartResponse(cart: ICartDocument | null) {
   if (!cart) {
@@ -40,33 +37,38 @@ function toCartResponse(cart: ICartDocument | null) {
 }
 
 export class CartService {
+  constructor(
+    private readonly cartRepo: ICartRepository,
+    private readonly productRepo: IProductRepository
+  ) {}
+
   async getCart(userId: string) {
-    const cart = await cartRepoInstance.findByUserId(userId);
+    const cart = await this.cartRepo.findByUserId(userId);
     return toCartResponse(cart);
   }
 
   async addItem(userId: string, productId: string, quantity: number) {
-    const product = await productRepoInstance.findById(productId);
+    const product = await this.productRepo.findById(productId);
     if (!product) {
       throw new CustomHttpException(404, "Product not found");
     }
 
-    const cart = await cartRepoInstance.upsertItem(userId, productId, quantity);
+    const cart = await this.cartRepo.upsertItem(userId, productId, quantity);
     return toCartResponse(cart);
   }
 
   async updateItemQuantity(userId: string, productId: string, quantity: number) {
-    const cart = await cartRepoInstance.setItemQuantity(userId, productId, quantity);
+    const cart = await this.cartRepo.setItemQuantity(userId, productId, quantity);
     return toCartResponse(cart);
   }
 
   async removeItem(userId: string, productId: string) {
-    const cart = await cartRepoInstance.removeItem(userId, productId);
+    const cart = await this.cartRepo.removeItem(userId, productId);
     return toCartResponse(cart);
   }
 
   async clearCart(userId: string) {
-    const cart = await cartRepoInstance.clear(userId);
+    const cart = await this.cartRepo.clear(userId);
     return toCartResponse(cart);
   }
 }

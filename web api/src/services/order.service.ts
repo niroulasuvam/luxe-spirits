@@ -1,16 +1,11 @@
 import crypto from "crypto";
-import { OrderRepositoryMongo } from "../repositories/order.repository";
-import { PaymentRepositoryMongo } from "../repositories/payment.repository";
-import { CartRepositoryMongo } from "../repositories/cart.repository";
-import { NotificationRepositoryMongo } from "../repositories/notification.repository";
+import { IOrderRepository } from "../repositories/order.repository";
+import { IPaymentRepository } from "../repositories/payment.repository";
+import { ICartRepository } from "../repositories/cart.repository";
+import { INotificationRepository } from "../repositories/notification.repository";
 import { CreateOrderDTO } from "../dtos/order.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 import { CLIENT_URL } from "../configs/constant";
-
-const orderRepoInstance = new OrderRepositoryMongo();
-const paymentRepoInstance = new PaymentRepositoryMongo();
-const cartRepoInstance = new CartRepositoryMongo();
-const notificationRepoInstance = new NotificationRepositoryMongo();
 
 const TAX_RATE = 0.13;
 const DELIVERY_WINDOW_DAYS = 7;
@@ -20,12 +15,19 @@ function generateOrderNumber() {
 }
 
 export class OrderService {
+  constructor(
+    private readonly orderRepo: IOrderRepository,
+    private readonly paymentRepo: IPaymentRepository,
+    private readonly cartRepo: ICartRepository,
+    private readonly notificationRepo: INotificationRepository
+  ) {}
+
   async listAllOrders() {
-    return await orderRepoInstance.findAll();
+    return await this.orderRepo.findAll();
   }
 
   async updateOrderStatus(id: string, status: string, estimatedHours?: number) {
-    const order = await orderRepoInstance.findById(id);
+    const order = await this.orderRepo.findById(id);
     if (!order) {
       throw new CustomHttpException(404, "Order not found");
     }
@@ -33,12 +35,12 @@ export class OrderService {
     const expectedDelivery = estimatedHours && estimatedHours > 0
       ? new Date(Date.now() + estimatedHours * 60 * 60 * 1000)
       : undefined;
-    const updated = await orderRepoInstance.updateStatus(id, status, expectedDelivery);
+    const updated = await this.orderRepo.updateStatus(id, status, expectedDelivery);
     if (!updated) {
       throw new CustomHttpException(404, "Order not found");
     }
 
-    await notificationRepoInstance.create({
+    await this.notificationRepo.create({
       userId: updated.userId,
       title: this.getStatusNotificationTitle(status),
       message: this.getStatusNotificationMessage(status, updated.orderNumber, estimatedHours),
@@ -66,7 +68,7 @@ export class OrderService {
   }
 
   async createOrderFromCart(userId: string, payload: CreateOrderDTO) {
-    const cart = await cartRepoInstance.findByUserId(userId);
+    const cart = await this.cartRepo.findByUserId(userId);
     const cartItems = (cart?.items || []).filter((item) => item.productId && typeof item.productId === "object");
 
     if (cartItems.length === 0) {
@@ -91,7 +93,7 @@ export class OrderService {
     const expectedDelivery = new Date();
     expectedDelivery.setDate(expectedDelivery.getDate() + DELIVERY_WINDOW_DAYS);
 
-    const order = await orderRepoInstance.create({
+    const order = await this.orderRepo.create({
       userId: userId as any,
       orderNumber: generateOrderNumber(),
       items: items as any,
@@ -107,7 +109,7 @@ export class OrderService {
       expectedDelivery
     });
 
-    await paymentRepoInstance.create({
+    await this.paymentRepo.create({
       orderId: order._id,
       userId: userId as any,
       amount: total,
@@ -116,17 +118,17 @@ export class OrderService {
       status: "succeeded"
     });
 
-    await cartRepoInstance.clear(userId);
+    await this.cartRepo.clear(userId);
 
     return order;
   }
 
   async listMyOrders(userId: string) {
-    return await orderRepoInstance.findByUserId(userId);
+    return await this.orderRepo.findByUserId(userId);
   }
 
   async getMyOrder(userId: string, orderNumber: string) {
-    const order = await orderRepoInstance.findByOrderNumber(orderNumber);
+    const order = await this.orderRepo.findByOrderNumber(orderNumber);
     if (!order || order.userId.toString() !== userId) {
       throw new CustomHttpException(404, "Order not found");
     }
