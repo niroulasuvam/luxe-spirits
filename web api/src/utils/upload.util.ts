@@ -24,7 +24,7 @@ const createStorage = (destination: string) => multer.diskStorage({
 const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   if (!file.originalname) {
     // No file was actually selected (e.g. an empty <input type="file"> submitted alongside other
-    // form fields) — skip it silently instead of rejecting the whole request.
+    // form fields) - skip it silently instead of rejecting the whole request.
     cb(null, false);
     return;
   }
