@@ -1,16 +1,16 @@
-import { BrandRepositoryMongo } from "../repositories/brand.repository";
+import { IBrandRepository } from "../repositories/brand.repository";
 import { CreateBrandDTO, UpdateBrandDTO } from "../dtos/brand.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 
-const brandRepoInstance = new BrandRepositoryMongo();
-
 export class BrandService {
+  constructor(private readonly brandRepo: IBrandRepository) {}
+
   async listBrands() {
-    return await brandRepoInstance.findAll();
+    return await this.brandRepo.findAll();
   }
 
   async getBrandBySlug(slug: string) {
-    const brand = await brandRepoInstance.findBySlug(slug);
+    const brand = await this.brandRepo.findBySlug(slug);
     if (!brand) {
       throw new CustomHttpException(404, "Brand not found");
     }
@@ -18,15 +18,15 @@ export class BrandService {
   }
 
   async createBrand(data: CreateBrandDTO) {
-    const existing = await brandRepoInstance.findBySlug(data.slug);
+    const existing = await this.brandRepo.findBySlug(data.slug);
     if (existing) {
       throw new CustomHttpException(400, "A brand with this slug already exists");
     }
-    return await brandRepoInstance.create(data);
+    return await this.brandRepo.create(data);
   }
 
   async updateBrand(id: string, updates: UpdateBrandDTO) {
-    const updated = await brandRepoInstance.updateById(id, updates);
+    const updated = await this.brandRepo.updateById(id, updates);
     if (!updated) {
       throw new CustomHttpException(404, "Brand not found");
     }
@@ -34,7 +34,7 @@ export class BrandService {
   }
 
   async deleteBrand(id: string) {
-    const deleted = await brandRepoInstance.deleteById(id);
+    const deleted = await this.brandRepo.deleteById(id);
     if (!deleted) {
       throw new CustomHttpException(404, "Brand not found");
     }

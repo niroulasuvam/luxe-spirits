@@ -1,16 +1,16 @@
-import { CategoryRepositoryMongo } from "../repositories/category.repository";
+import { ICategoryRepository } from "../repositories/category.repository";
 import { CreateCategoryDTO, UpdateCategoryDTO } from "../dtos/category.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 
-const categoryRepoInstance = new CategoryRepositoryMongo();
-
 export class CategoryService {
+  constructor(private readonly categoryRepo: ICategoryRepository) {}
+
   async listCategories() {
-    return await categoryRepoInstance.findAll();
+    return await this.categoryRepo.findAll();
   }
 
   async getCategoryBySlug(slug: string) {
-    const category = await categoryRepoInstance.findBySlug(slug);
+    const category = await this.categoryRepo.findBySlug(slug);
     if (!category) {
       throw new CustomHttpException(404, "Category not found");
     }
@@ -18,15 +18,15 @@ export class CategoryService {
   }
 
   async createCategory(data: CreateCategoryDTO) {
-    const existing = await categoryRepoInstance.findBySlug(data.slug);
+    const existing = await this.categoryRepo.findBySlug(data.slug);
     if (existing) {
       throw new CustomHttpException(400, "A category with this slug already exists");
     }
-    return await categoryRepoInstance.create(data);
+    return await this.categoryRepo.create(data);
   }
 
   async updateCategory(id: string, updates: UpdateCategoryDTO) {
-    const updated = await categoryRepoInstance.updateById(id, updates);
+    const updated = await this.categoryRepo.updateById(id, updates);
     if (!updated) {
       throw new CustomHttpException(404, "Category not found");
     }
@@ -34,7 +34,7 @@ export class CategoryService {
   }
 
   async deleteCategory(id: string) {
-    const deleted = await categoryRepoInstance.deleteById(id);
+    const deleted = await this.categoryRepo.deleteById(id);
     if (!deleted) {
       throw new CustomHttpException(404, "Category not found");
     }
