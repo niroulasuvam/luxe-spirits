@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="border-t border-[#ece7dc] bg-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 text-sm text-neutral-600 md:grid-cols-3 lg:px-8">
         <div>
-          <h2 className="mb-4 text-lg font-bold text-[#765d08]">Luxe Spirits</h2>
+          <h2 className="mb-4 text-lg font-bold text-[#765d08]">Liquor Hub</h2>
           <p className="max-w-xs leading-6">The destination for the world&apos;s most exclusive spirits. Direct from independent distilleries to your private cellar.</p>
           <div className="mt-5 flex gap-3 text-[#765d08]">
             <Icon name="shield" className="h-4 w-4" />

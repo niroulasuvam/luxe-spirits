@@ -29,7 +29,7 @@ export function SiteHeader({ compact = false, user = null }: { compact?: boolean
     <header className="sticky top-0 z-30 border-b border-[#313942] bg-[#111418]/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
         <Link href="/dashboard" className="text-2xl font-bold text-[#c9a449]">
-          Luxe Spirits
+          Liquor Hub
         </Link>
         <nav className="hidden items-center gap-10 text-sm text-[#cbd5e1] md:flex">
           <Link href="/offers" className="hover:text-[#c9a449]">Offers</Link>
