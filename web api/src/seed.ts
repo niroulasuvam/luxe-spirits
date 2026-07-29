@@ -15,10 +15,10 @@ const CATEGORIES = [
 ];
 
 const BRAND = {
-  name: "Luxe Spirits Distillery",
-  slug: "luxe-spirits-distillery",
+  name: "Liquor Hub Distillery",
+  slug: "liquor-hub-distillery",
   origin: "Highlands, Scotland",
-  description: "The independent distillery behind every bottle in the Luxe Spirits collection."
+  description: "The independent distillery behind every bottle in the Liquor Hub collection."
 };
 
 const PRODUCTS = [
@@ -219,7 +219,7 @@ async function seed() {
       { email: process.env.ADMIN_EMAIL },
       {
         $set: {
-          fullName: process.env.ADMIN_NAME || "Luxe Admin",
+          fullName: process.env.ADMIN_NAME || "Liquor Hub Admin",
           email: process.env.ADMIN_EMAIL,
           password: hashedPassword,
           ageVerified: true,
