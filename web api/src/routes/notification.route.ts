@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/auth.middleware";
-import { NotificationController } from "../controllers/notification.controller";
+import { controllers } from "../application/container";
 
 const notificationRouter = Router();
-const notificationControllerInstance = new NotificationController();
+const notificationControllerInstance = controllers.notification;
 
 notificationRouter.use(authenticate);
 notificationRouter.get("/", notificationControllerInstance.list.bind(notificationControllerInstance));

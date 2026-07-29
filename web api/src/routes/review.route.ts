@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { ReviewController } from "../controllers/review.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const reviewRouter = Router();
-const reviewControllerInstance = new ReviewController();
+const reviewControllerInstance = controllers.review;
 
 reviewRouter.get("/", reviewControllerInstance.listReviews.bind(reviewControllerInstance));
 reviewRouter.post("/", authenticate, reviewControllerInstance.createReview.bind(reviewControllerInstance));

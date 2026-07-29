@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { ProductController } from "../controllers/product.controller";
+import { controllers } from "../application/container";
 import { authenticate, requireAdmin } from "../middlewares/auth.middleware";
 import { productImageUpload } from "../utils/upload.util";
 
 const productRouter = Router();
-const productControllerInstance = new ProductController();
+const productControllerInstance = controllers.product;
 
 productRouter.get("/", productControllerInstance.listProducts.bind(productControllerInstance));
 productRouter.post("/ai-search", productControllerInstance.aiSearch.bind(productControllerInstance));

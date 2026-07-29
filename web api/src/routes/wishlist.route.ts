@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { WishlistController } from "../controllers/wishlist.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const wishlistRouter = Router();
-const wishlistControllerInstance = new WishlistController();
+const wishlistControllerInstance = controllers.wishlist;
 
 wishlistRouter.use(authenticate);
 

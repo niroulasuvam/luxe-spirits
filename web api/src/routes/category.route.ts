@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { CategoryController } from "../controllers/category.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const categoryRouter = Router();
-const categoryControllerInstance = new CategoryController();
+const categoryControllerInstance = controllers.category;
 
 categoryRouter.get("/", categoryControllerInstance.listCategories.bind(categoryControllerInstance));
 categoryRouter.get("/:slug", categoryControllerInstance.getCategory.bind(categoryControllerInstance));

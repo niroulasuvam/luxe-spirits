@@ -1,10 +1,10 @@
-import { UserController } from "../controllers/user.controller";
+import { controllers } from "../application/container";
 import { Router } from "express";
 import { authenticate } from "../middlewares/auth.middleware";
 import { avatarUpload } from "../utils/upload.util";
 
 const userRouter = Router();
-const userControllerInstance = new UserController();
+const userControllerInstance = controllers.user;
 
 userRouter.post("/register", userControllerInstance.registerUser.bind(userControllerInstance));
 userRouter.post("/login", userControllerInstance.loginUser.bind(userControllerInstance));

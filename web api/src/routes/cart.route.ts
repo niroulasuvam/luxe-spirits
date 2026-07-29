@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { CartController } from "../controllers/cart.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const cartRouter = Router();
-const cartControllerInstance = new CartController();
+const cartControllerInstance = controllers.cart;
 
 cartRouter.use(authenticate);
 

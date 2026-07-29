@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { PaymentController } from "../controllers/payment.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const paymentRouter = Router();
-const paymentControllerInstance = new PaymentController();
+const paymentControllerInstance = controllers.payment;
 
 paymentRouter.use(authenticate);
 

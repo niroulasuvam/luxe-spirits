@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { OrderController } from "../controllers/order.controller";
+import { controllers } from "../application/container";
 import { authenticate, requireAdmin } from "../middlewares/auth.middleware";
 
 const orderRouter = Router();
-const orderControllerInstance = new OrderController();
+const orderControllerInstance = controllers.order;
 
 orderRouter.use(authenticate);
 

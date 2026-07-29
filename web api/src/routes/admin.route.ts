@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { AdminController } from "../controllers/admin.controller";
+import { controllers } from "../application/container";
 import { authenticate, requireAdmin } from "../middlewares/auth.middleware";
 import { notificationImageUpload } from "../utils/upload.util";
 
 const adminRouter = Router();
-const adminControllerInstance = new AdminController();
+const adminControllerInstance = controllers.admin;
 
 adminRouter.use(authenticate, requireAdmin);
 

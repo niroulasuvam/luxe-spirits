@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { CouponController } from "../controllers/coupon.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const couponRouter = Router();
-const couponControllerInstance = new CouponController();
+const couponControllerInstance = controllers.coupon;
 
 couponRouter.get("/", couponControllerInstance.listCoupons.bind(couponControllerInstance));
 couponRouter.post("/apply", couponControllerInstance.applyCoupon.bind(couponControllerInstance));

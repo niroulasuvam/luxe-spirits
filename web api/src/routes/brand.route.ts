@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { BrandController } from "../controllers/brand.controller";
+import { controllers } from "../application/container";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const brandRouter = Router();
-const brandControllerInstance = new BrandController();
+const brandControllerInstance = controllers.brand;
 
 brandRouter.get("/", brandControllerInstance.listBrands.bind(brandControllerInstance));
 brandRouter.get("/:slug", brandControllerInstance.getBrand.bind(brandControllerInstance));
