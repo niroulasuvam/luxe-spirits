@@ -6,7 +6,7 @@ export const initializeDatabase = async () => {
   try {
     await mongoose.connect(DATABASE_URL);
     await ensureDefaultCategories();
-    console.log("✅ Connected to Luxe Spirits Database");
+    console.log("✅ Connected to Liquor Hub Database");
   } catch (error) {
     console.error("❌ Database connection failed:", error);
     throw error;
