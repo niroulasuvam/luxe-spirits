@@ -1,16 +1,13 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { UserRepositoryMongo } from "../repositories/user.repository";
+import { IUserRepository } from "../repositories/user.repository";
 import { AdminUpdateUserDTO, ChangePasswordDTO, RegisterUserDTO, LoginUserDTO, UpdateProfileDTO } from "../dtos/user.dto";
 import { CustomHttpException } from "../exceptions/http-exception";
 import { ADMIN_EMAIL, ADMIN_NAME, ADMIN_PASSWORD, CLIENT_URL, GOOGLE_CLIENT_ID, JWT_SECRET } from "../configs/constant";
 import { IUserDocument } from "../models/user.model";
 import { sendPasswordResetEmail, sendPasswordResetOtpEmail } from "../utils/mailer.util";
-import { NotificationRepositoryMongo } from "../repositories/notification.repository";
-
-const userRepoInstance = new UserRepositoryMongo();
-const notificationRepoInstance = new NotificationRepositoryMongo();
+import { INotificationRepository } from "../repositories/notification.repository";
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -37,24 +34,29 @@ function signAuthToken(user: IUserDocument) {
 }
 
 export class UserService {
+  constructor(
+    private readonly userRepo: IUserRepository,
+    private readonly notificationRepo: INotificationRepository
+  ) {}
+
   async registerNewUser(userData: RegisterUserDTO) {
-    const existingUser = await userRepoInstance.findByEmail(userData.email);
+    const existingUser = await this.userRepo.findByEmail(userData.email);
     if (existingUser) {
       throw new CustomHttpException(400, "Email already registered");
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const created = await userRepoInstance.create({ ...userData, password: hashedPassword });
+    const created = await this.userRepo.create({ ...userData, password: hashedPassword });
 
     return toSafeUser(created);
   }
 
   async authenticateUser(loginData: LoginUserDTO) {
-    let user = await userRepoInstance.findByEmailWithPassword(loginData.email);
+    let user = await this.userRepo.findByEmailWithPassword(loginData.email);
     if (!user) {
       if (loginData.email === ADMIN_EMAIL && loginData.password === ADMIN_PASSWORD) {
         const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
-        await userRepoInstance.create({
+        await this.userRepo.create({
           fullName: ADMIN_NAME,
           email: ADMIN_EMAIL,
           password: hashedPassword,
@@ -62,7 +64,7 @@ export class UserService {
           role: "admin",
           isActive: true
         });
-        user = await userRepoInstance.findByEmailWithPassword(loginData.email);
+        user = await this.userRepo.findByEmailWithPassword(loginData.email);
       }
       if (!user) {
         throw new CustomHttpException(400, "Invalid credentials");
@@ -106,12 +108,12 @@ export class UserService {
 
   async authenticateWithGoogle(credential: string) {
     const googleUser = await this.verifyGoogleCredential(credential);
-    let user = await userRepoInstance.findByEmailWithPassword(googleUser.email);
+    let user = await this.userRepo.findByEmailWithPassword(googleUser.email);
 
     if (!user) {
       const randomPassword = crypto.randomBytes(24).toString("hex");
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
-      await userRepoInstance.create({
+      await this.userRepo.create({
         fullName: googleUser.fullName,
         email: googleUser.email,
         password: hashedPassword,
@@ -120,7 +122,7 @@ export class UserService {
         isActive: true,
         profilePicture: googleUser.profilePicture
       });
-      user = await userRepoInstance.findByEmailWithPassword(googleUser.email);
+      user = await this.userRepo.findByEmailWithPassword(googleUser.email);
     }
 
     if (!user) {
@@ -134,7 +136,7 @@ export class UserService {
     if (!user.profilePicture && googleUser.profilePicture) updates.profilePicture = googleUser.profilePicture;
     if (!user.fullName && googleUser.fullName) updates.fullName = googleUser.fullName;
     if (Object.keys(updates).length > 0) {
-      const updated = await userRepoInstance.updateById(user._id.toString(), updates);
+      const updated = await this.userRepo.updateById(user._id.toString(), updates);
       if (updated) user = updated as IUserDocument;
     }
 
@@ -142,7 +144,7 @@ export class UserService {
   }
 
   async getProfile(userId: string) {
-    const user = await userRepoInstance.findById(userId);
+    const user = await this.userRepo.findById(userId);
     if (!user) {
       throw new CustomHttpException(404, "User not found");
     }
@@ -155,7 +157,7 @@ export class UserService {
       payload.profilePicture = profilePicture;
     }
 
-    const updated = await userRepoInstance.updateById(userId, payload);
+    const updated = await this.userRepo.updateById(userId, payload);
     if (!updated) {
       throw new CustomHttpException(404, "User not found");
     }
@@ -163,13 +165,13 @@ export class UserService {
   }
 
   async requestPasswordReset(email: string, clientResetUrlBase: string) {
-    const user = await userRepoInstance.findByEmail(email);
+    const user = await this.userRepo.findByEmail(email);
     if (!user) {
       return;
     }
 
     const rawToken = crypto.randomInt(100000, 999999).toString();
-    await userRepoInstance.updateById(user._id.toString(), {
+    await this.userRepo.updateById(user._id.toString(), {
       resetPasswordToken: hashToken(rawToken),
       resetPasswordExpires: new Date(Date.now() + RESET_TOKEN_TTL_MS)
     });
@@ -186,18 +188,18 @@ export class UserService {
   }
 
   async resetPasswordWithOtp(email: string, otp: string, newPassword: string) {
-    const user = await userRepoInstance.findByEmail(email);
+    const user = await this.userRepo.findByEmail(email);
     if (!user) {
       throw new CustomHttpException(400, "Invalid or expired OTP");
     }
 
-    const userWithResetFields = await userRepoInstance.findByResetToken(hashToken(otp));
+    const userWithResetFields = await this.userRepo.findByResetToken(hashToken(otp));
     if (!userWithResetFields || userWithResetFields.email !== email) {
       throw new CustomHttpException(400, "Invalid or expired OTP");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await userRepoInstance.updateById(user._id.toString(), {
+    await this.userRepo.updateById(user._id.toString(), {
       password: hashedPassword,
       resetPasswordToken: null as unknown as string,
       resetPasswordExpires: null as unknown as Date
@@ -205,13 +207,13 @@ export class UserService {
   }
 
   async resetPassword(token: string, newPassword: string) {
-    const user = await userRepoInstance.findByResetToken(hashToken(token));
+    const user = await this.userRepo.findByResetToken(hashToken(token));
     if (!user) {
       throw new CustomHttpException(400, "Invalid or expired reset link");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await userRepoInstance.updateById(user._id.toString(), {
+    await this.userRepo.updateById(user._id.toString(), {
       password: hashedPassword,
       resetPasswordToken: null as unknown as string,
       resetPasswordExpires: null as unknown as Date
@@ -219,12 +221,12 @@ export class UserService {
   }
 
   async changePassword(userId: string, data: ChangePasswordDTO) {
-    const user = await userRepoInstance.findById(userId);
+    const user = await this.userRepo.findById(userId);
     if (!user) {
       throw new CustomHttpException(404, "User not found");
     }
 
-    const userWithPassword = await userRepoInstance.findByEmailWithPassword(user.email);
+    const userWithPassword = await this.userRepo.findByEmailWithPassword(user.email);
     if (!userWithPassword) {
       throw new CustomHttpException(404, "User not found");
     }
@@ -235,16 +237,16 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
-    await userRepoInstance.updateById(userId, { password: hashedPassword });
+    await this.userRepo.updateById(userId, { password: hashedPassword });
   }
 
   async listUsers() {
-    const users = await userRepoInstance.findAll();
+    const users = await this.userRepo.findAll();
     return users.map(toSafeUser);
   }
 
   async adminUpdateUser(id: string, updates: AdminUpdateUserDTO) {
-    const updated = await userRepoInstance.updateById(id, updates);
+    const updated = await this.userRepo.updateById(id, updates);
     if (!updated) {
       throw new CustomHttpException(404, "User not found");
     }
@@ -252,7 +254,7 @@ export class UserService {
   }
 
   async deleteUser(id: string) {
-    const deleted = await userRepoInstance.deleteById(id);
+    const deleted = await this.userRepo.deleteById(id);
     if (!deleted) {
       throw new CustomHttpException(404, "User not found");
     }
@@ -260,23 +262,41 @@ export class UserService {
   }
 
   async adminSendPasswordRecovery(id: string) {
-    const user = await userRepoInstance.findById(id);
+    const user = await this.userRepo.findById(id);
     if (!user) {
       throw new CustomHttpException(404, "User not found");
     }
 
     const rawToken = crypto.randomBytes(32).toString("hex");
-    await userRepoInstance.updateById(id, {
+    await this.userRepo.updateById(id, {
       resetPasswordToken: hashToken(rawToken),
       resetPasswordExpires: new Date(Date.now() + RESET_TOKEN_TTL_MS)
     });
 
-    await notificationRepoInstance.create({
+    await this.notificationRepo.create({
       userId: user._id,
       title: "Password recovery",
       message: "An admin sent you a secure password reset link.",
       href: `${CLIENT_URL}/reset-password/${rawToken}`,
       read: false
     });
+  }
+
+  async notifyActiveCustomers(title: string, message: string, image?: string) {
+    const users = await this.userRepo.findAll();
+    const activeCustomers = users.filter((user) => user.role === "user" && user.isActive);
+
+    if (activeCustomers.length > 0) {
+      await this.notificationRepo.createMany(
+        activeCustomers.map((user) => ({
+          userId: user._id,
+          title,
+          message,
+          image
+        } as any))
+      );
+    }
+
+    return { sent: activeCustomers.length };
   }
 }
