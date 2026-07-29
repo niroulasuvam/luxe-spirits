@@ -5,19 +5,20 @@ import { CreateProductDTO, UpdateProductDTO, ListProductsQueryDTO } from "../dto
 import { ResponseFormatter } from "../utils/apihelper.util";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
-const productServiceInstance = new ProductService();
 type ProductUploadRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
 const requestBaseUrl = (req: AuthenticatedRequest) => `${req.protocol}://${req.get("host")}`;
 
 export class ProductController {
+  constructor(private readonly productService: ProductService) {}
+
   async listProducts(req: AuthenticatedRequest, res: Response) {
     try {
       const validationResult = ListProductsQueryDTO.safeParse(req.query);
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const products = await productServiceInstance.listProducts(validationResult.data);
+      const products = await this.productService.listProducts(validationResult.data);
       return ResponseFormatter.successResponse(res, products, "Products fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -27,7 +28,7 @@ export class ProductController {
   async aiSearch(req: AuthenticatedRequest, res: Response) {
     try {
       const prompt = String(req.body.prompt || "");
-      const result = await productServiceInstance.aiSearch(prompt);
+      const result = await this.productService.aiSearch(prompt);
       return ResponseFormatter.successResponse(res, result, "AI search completed");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -36,7 +37,7 @@ export class ProductController {
 
   async getProduct(req: AuthenticatedRequest, res: Response) {
     try {
-      const product = await productServiceInstance.getProductBySlug(req.params.slug as string);
+      const product = await this.productService.getProductBySlug(req.params.slug as string);
       return ResponseFormatter.successResponse(res, product, "Product fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -50,7 +51,7 @@ export class ProductController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const product = await productServiceInstance.createProduct(validationResult.data);
+      const product = await this.productService.createProduct(validationResult.data);
       return ResponseFormatter.successResponse(res, product, "Product created", 201);
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -64,7 +65,7 @@ export class ProductController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const product = await productServiceInstance.updateProduct(req.params.id as string, validationResult.data);
+      const product = await this.productService.updateProduct(req.params.id as string, validationResult.data);
       return ResponseFormatter.successResponse(res, product, "Product updated");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -73,7 +74,7 @@ export class ProductController {
 
   async deleteProduct(req: AuthenticatedRequest, res: Response) {
     try {
-      await productServiceInstance.deleteProduct(req.params.id as string);
+      await this.productService.deleteProduct(req.params.id as string);
       return ResponseFormatter.successResponse(res, null, "Product deleted");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);

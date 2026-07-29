@@ -3,20 +3,17 @@ import { Response } from "express";
 import { AdminUpdateUserDTO } from "../dtos/user.dto";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { UserService } from "../services/user.service";
-import { UserRepositoryMongo } from "../repositories/user.repository";
-import { NotificationRepositoryMongo } from "../repositories/notification.repository";
 import { ResponseFormatter } from "../utils/apihelper.util";
 
-const userServiceInstance = new UserService();
-const userRepoInstance = new UserRepositoryMongo();
-const notificationRepoInstance = new NotificationRepositoryMongo();
 type AdminNotifyRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 const requestBaseUrl = (req: AuthenticatedRequest) => `${req.protocol}://${req.get("host")}`;
 
 export class AdminController {
+  constructor(private readonly userService: UserService) {}
+
   async listUsers(req: AuthenticatedRequest, res: Response) {
     try {
-      const users = await userServiceInstance.listUsers();
+      const users = await this.userService.listUsers();
       return ResponseFormatter.successResponse(res, users, "Users fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -29,7 +26,7 @@ export class AdminController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const user = await userServiceInstance.adminUpdateUser(req.params.id as string, validationResult.data);
+      const user = await this.userService.adminUpdateUser(req.params.id as string, validationResult.data);
       return ResponseFormatter.successResponse(res, user, "User updated");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -38,7 +35,7 @@ export class AdminController {
 
   async deleteUser(req: AuthenticatedRequest, res: Response) {
     try {
-      await userServiceInstance.deleteUser(req.params.id as string);
+      await this.userService.deleteUser(req.params.id as string);
       return ResponseFormatter.successResponse(res, null, "User deleted");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -47,7 +44,7 @@ export class AdminController {
 
   async sendPasswordRecovery(req: AuthenticatedRequest, res: Response) {
     try {
-      await userServiceInstance.adminSendPasswordRecovery(req.params.id as string);
+      await this.userService.adminSendPasswordRecovery(req.params.id as string);
       return ResponseFormatter.successResponse(res, null, "Recovery notification sent");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -63,21 +60,8 @@ export class AdminController {
       }
 
       const image = req.file ? `${requestBaseUrl(req)}/uploads/notifications/${req.file.filename}` : undefined;
-      const users = await userRepoInstance.findAll();
-      const activeCustomers = users.filter((user) => user.role === "user" && user.isActive);
-
-      if (activeCustomers.length > 0) {
-        await notificationRepoInstance.createMany(
-          activeCustomers.map((user) => ({
-            userId: user._id,
-            title,
-            message,
-            image
-          } as any))
-        );
-      }
-
-      return ResponseFormatter.successResponse(res, { sent: activeCustomers.length }, "Notification sent");
+      const result = await this.userService.notifyActiveCustomers(title, message, image);
+      return ResponseFormatter.successResponse(res, result, "Notification sent");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
     }

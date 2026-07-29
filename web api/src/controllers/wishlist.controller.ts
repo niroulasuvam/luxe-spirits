@@ -5,12 +5,12 @@ import { ToggleWishlistDTO } from "../dtos/wishlist.dto";
 import { ResponseFormatter } from "../utils/apihelper.util";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
-const wishlistServiceInstance = new WishlistService();
-
 export class WishlistController {
+  constructor(private readonly wishlistService: WishlistService) {}
+
   async getWishlist(req: AuthenticatedRequest, res: Response) {
     try {
-      const wishlist = await wishlistServiceInstance.getWishlist(req.userId!);
+      const wishlist = await this.wishlistService.getWishlist(req.userId!);
       return ResponseFormatter.successResponse(res, wishlist, "Wishlist fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -23,7 +23,7 @@ export class WishlistController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const wishlist = await wishlistServiceInstance.toggleProduct(req.userId!, validationResult.data.productId);
+      const wishlist = await this.wishlistService.toggleProduct(req.userId!, validationResult.data.productId);
       return ResponseFormatter.successResponse(res, wishlist, "Wishlist updated");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);

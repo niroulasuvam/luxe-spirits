@@ -5,12 +5,12 @@ import { CreateCouponDTO, UpdateCouponDTO, ApplyCouponDTO } from "../dtos/coupon
 import { ResponseFormatter } from "../utils/apihelper.util";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
-const couponServiceInstance = new CouponService();
-
 export class CouponController {
+  constructor(private readonly couponService: CouponService) {}
+
   async listCoupons(req: AuthenticatedRequest, res: Response) {
     try {
-      const coupons = await couponServiceInstance.listCoupons();
+      const coupons = await this.couponService.listCoupons();
       return ResponseFormatter.successResponse(res, coupons, "Coupons fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -23,7 +23,7 @@ export class CouponController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const coupon = await couponServiceInstance.createCoupon(validationResult.data);
+      const coupon = await this.couponService.createCoupon(validationResult.data);
       return ResponseFormatter.successResponse(res, coupon, "Coupon created", 201);
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -36,7 +36,7 @@ export class CouponController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const coupon = await couponServiceInstance.updateCoupon(req.params.id as string, validationResult.data);
+      const coupon = await this.couponService.updateCoupon(req.params.id as string, validationResult.data);
       return ResponseFormatter.successResponse(res, coupon, "Coupon updated");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -45,7 +45,7 @@ export class CouponController {
 
   async deleteCoupon(req: AuthenticatedRequest, res: Response) {
     try {
-      await couponServiceInstance.deleteCoupon(req.params.id as string);
+      await this.couponService.deleteCoupon(req.params.id as string);
       return ResponseFormatter.successResponse(res, null, "Coupon deleted");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -58,7 +58,7 @@ export class CouponController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const result = await couponServiceInstance.applyCoupon(validationResult.data.code, validationResult.data.subtotal);
+      const result = await this.couponService.applyCoupon(validationResult.data.code, validationResult.data.subtotal);
       return ResponseFormatter.successResponse(res, result, "Coupon applied");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);

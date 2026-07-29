@@ -5,12 +5,12 @@ import { AddCartItemDTO, UpdateCartItemDTO } from "../dtos/cart.dto";
 import { ResponseFormatter } from "../utils/apihelper.util";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
-const cartServiceInstance = new CartService();
-
 export class CartController {
+  constructor(private readonly cartService: CartService) {}
+
   async getCart(req: AuthenticatedRequest, res: Response) {
     try {
-      const cart = await cartServiceInstance.getCart(req.userId!);
+      const cart = await this.cartService.getCart(req.userId!);
       return ResponseFormatter.successResponse(res, cart, "Cart fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -23,7 +23,7 @@ export class CartController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const cart = await cartServiceInstance.addItem(
+      const cart = await this.cartService.addItem(
         req.userId!,
         validationResult.data.productId,
         validationResult.data.quantity
@@ -40,7 +40,7 @@ export class CartController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const cart = await cartServiceInstance.updateItemQuantity(
+      const cart = await this.cartService.updateItemQuantity(
         req.userId!,
         req.params.productId as string,
         validationResult.data.quantity
@@ -53,7 +53,7 @@ export class CartController {
 
   async removeItem(req: AuthenticatedRequest, res: Response) {
     try {
-      const cart = await cartServiceInstance.removeItem(req.userId!, req.params.productId as string);
+      const cart = await this.cartService.removeItem(req.userId!, req.params.productId as string);
       return ResponseFormatter.successResponse(res, cart, "Item removed from cart");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -62,7 +62,7 @@ export class CartController {
 
   async clearCart(req: AuthenticatedRequest, res: Response) {
     try {
-      const cart = await cartServiceInstance.clearCart(req.userId!);
+      const cart = await this.cartService.clearCart(req.userId!);
       return ResponseFormatter.successResponse(res, cart, "Cart cleared");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);

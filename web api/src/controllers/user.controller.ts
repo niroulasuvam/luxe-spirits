@@ -6,12 +6,12 @@ import { Response } from "express";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 import { CLIENT_URL } from "../configs/constant";
 
-const userServiceInstance = new UserService();
-
 type UploadRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 const requestBaseUrl = (req: AuthenticatedRequest) => `${req.protocol}://${req.get("host")}`;
 
 export class UserController {
+  constructor(private readonly userService: UserService) {}
+
   async registerUser(req: AuthenticatedRequest, res: Response) {
     try {
       const validationResult = RegisterUserDTO.safeParse(req.body);
@@ -23,7 +23,7 @@ export class UserController {
         );
       }
 
-      const newUser = await userServiceInstance.registerNewUser(validationResult.data);
+      const newUser = await this.userService.registerNewUser(validationResult.data);
       return ResponseFormatter.successResponse(res, newUser, "Membership created successfully");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -41,7 +41,7 @@ export class UserController {
         );
       }
 
-      const authResult = await userServiceInstance.authenticateUser(validationResult.data);
+      const authResult = await this.userService.authenticateUser(validationResult.data);
       return ResponseFormatter.successResponse(
         res,
         { user: authResult.user, token: authResult.token },
@@ -59,7 +59,7 @@ export class UserController {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
 
-      const authResult = await userServiceInstance.authenticateWithGoogle(validationResult.data.credential);
+      const authResult = await this.userService.authenticateWithGoogle(validationResult.data.credential);
       return ResponseFormatter.successResponse(
         res,
         { user: authResult.user, token: authResult.token },
@@ -72,7 +72,7 @@ export class UserController {
 
   async getMe(req: AuthenticatedRequest, res: Response) {
     try {
-      const user = await userServiceInstance.getProfile(req.userId!);
+      const user = await this.userService.getProfile(req.userId!);
       return ResponseFormatter.successResponse(res, user, "Profile fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -91,7 +91,7 @@ export class UserController {
       }
 
       const profilePicture = req.file ? `${requestBaseUrl(req)}/uploads/avatars/${req.file.filename}` : undefined;
-      const updatedUser = await userServiceInstance.updateProfile(req.userId!, validationResult.data, profilePicture);
+      const updatedUser = await this.userService.updateProfile(req.userId!, validationResult.data, profilePicture);
       return ResponseFormatter.successResponse(res, updatedUser, "Profile updated successfully");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -109,7 +109,7 @@ export class UserController {
         );
       }
 
-      await userServiceInstance.requestPasswordReset(validationResult.data.email, `${CLIENT_URL}/reset-password`);
+      await this.userService.requestPasswordReset(validationResult.data.email, `${CLIENT_URL}/reset-password`);
       return ResponseFormatter.successResponse(res, null, "If that email exists, a reset link has been sent");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -127,7 +127,7 @@ export class UserController {
         );
       }
 
-      await userServiceInstance.resetPassword(validationResult.data.token, validationResult.data.newPassword);
+      await this.userService.resetPassword(validationResult.data.token, validationResult.data.newPassword);
       return ResponseFormatter.successResponse(res, null, "Password reset successfully");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -145,7 +145,7 @@ export class UserController {
         );
       }
 
-      await userServiceInstance.resetPasswordWithOtp(
+      await this.userService.resetPasswordWithOtp(
         validationResult.data.email,
         validationResult.data.otp,
         validationResult.data.newPassword
@@ -167,7 +167,7 @@ export class UserController {
         );
       }
 
-      await userServiceInstance.changePassword(req.userId!, validationResult.data);
+      await this.userService.changePassword(req.userId!, validationResult.data);
       return ResponseFormatter.successResponse(res, null, "Password changed successfully");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);

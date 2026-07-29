@@ -5,9 +5,9 @@ import { CreateOrderDTO } from "../dtos/order.dto";
 import { ResponseFormatter } from "../utils/apihelper.util";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware";
 
-const orderServiceInstance = new OrderService();
-
 export class OrderController {
+  constructor(private readonly orderService: OrderService) {}
+
   async updateOrderStatus(req: AuthenticatedRequest, res: Response) {
     try {
       const status = String(req.body.status || "");
@@ -15,7 +15,7 @@ export class OrderController {
         return ResponseFormatter.errorResponse(res, "Invalid order status", 400);
       }
       const estimatedHours = Number(req.body.estimatedHours);
-      const order = await orderServiceInstance.updateOrderStatus(
+      const order = await this.orderService.updateOrderStatus(
         req.params.id as string,
         status,
         Number.isFinite(estimatedHours) && estimatedHours > 0 ? estimatedHours : undefined
@@ -28,7 +28,7 @@ export class OrderController {
 
   async listAllOrders(req: AuthenticatedRequest, res: Response) {
     try {
-      const orders = await orderServiceInstance.listAllOrders();
+      const orders = await this.orderService.listAllOrders();
       return ResponseFormatter.successResponse(res, orders, "Orders fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -41,7 +41,7 @@ export class OrderController {
       if (!validationResult.success) {
         return ResponseFormatter.errorResponse(res, z.prettifyError(validationResult.error), 400);
       }
-      const order = await orderServiceInstance.createOrderFromCart(req.userId!, validationResult.data);
+      const order = await this.orderService.createOrderFromCart(req.userId!, validationResult.data);
       return ResponseFormatter.successResponse(res, order, "Order placed successfully", 201);
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -50,7 +50,7 @@ export class OrderController {
 
   async listMyOrders(req: AuthenticatedRequest, res: Response) {
     try {
-      const orders = await orderServiceInstance.listMyOrders(req.userId!);
+      const orders = await this.orderService.listMyOrders(req.userId!);
       return ResponseFormatter.successResponse(res, orders, "Orders fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
@@ -59,7 +59,7 @@ export class OrderController {
 
   async getMyOrder(req: AuthenticatedRequest, res: Response) {
     try {
-      const order = await orderServiceInstance.getMyOrder(req.userId!, req.params.orderNumber as string);
+      const order = await this.orderService.getMyOrder(req.userId!, req.params.orderNumber as string);
       return ResponseFormatter.successResponse(res, order, "Order fetched");
     } catch (error: any) {
       return ResponseFormatter.errorResponse(res, error.message, error.status || 500);
