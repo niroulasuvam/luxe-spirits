@@ -166,11 +166,11 @@ describe("Category And Brand DTO Tests", () => {
   });
 
   test("brand create accepts optional origin", () => {
-    expect(CreateBrandDTO.safeParse({ name: "Luxe", slug: "luxe", origin: "Nepal" }).success).toBe(true);
+    expect(CreateBrandDTO.safeParse({ name: "Liquor Hub", slug: "liquor-hub", origin: "Nepal" }).success).toBe(true);
   });
 
   test("brand rejects short slug", () => {
-    expect(CreateBrandDTO.safeParse({ name: "Luxe", slug: "x" }).success).toBe(false);
+    expect(CreateBrandDTO.safeParse({ name: "Liquor Hub", slug: "x" }).success).toBe(false);
   });
 
   test("brand update allows partial origin", () => {
