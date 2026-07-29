@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
     <main className="grid min-h-screen place-items-center bg-[#f6f7f8] px-6 text-neutral-950">
       <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-xl shadow-neutral-200/80">
         <h1 className="text-2xl font-bold text-[#806505]">Set a new password</h1>
-        <p className="mt-3 text-sm leading-6 text-neutral-600">Choose a new password for your Luxe Spirits account.</p>
+        <p className="mt-3 text-sm leading-6 text-neutral-600">Choose a new password for your Liquor Hub account.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
           {message && (

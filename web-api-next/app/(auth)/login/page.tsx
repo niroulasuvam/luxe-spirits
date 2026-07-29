@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -64,7 +64,7 @@ export default function LoginPage() {
             <div className="relative mx-auto aspect-square max-w-[450px] overflow-hidden shadow-2xl">
               <Image
                 src="https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=900&h=900&fit=crop"
-                alt="Luxe Spirits whiskey decanter"
+                alt="Liquor Hub whiskey decanter"
                 fill
                 priority
                 sizes="(max-width: 1024px) 90vw, 450px"
@@ -81,7 +81,7 @@ export default function LoginPage() {
         <section className="flex items-center justify-center px-8 py-14">
           <div className="flex min-h-[760px] w-full max-w-[390px] flex-col">
             <div className="mt-8">
-              <h2 className="text-3xl font-bold text-[#806505]">Luxe Spirits</h2>
+              <h2 className="text-3xl font-bold text-[#806505]">Liquor Hub</h2>
               <p className="mt-3 max-w-xs text-base leading-6 text-neutral-700">Please enter your credentials to access the vault.</p>
             </div>
 
@@ -100,7 +100,7 @@ export default function LoginPage() {
                   type="email"
                   {...register("email")}
                   className="h-14 w-full rounded-lg border border-neutral-200 bg-transparent px-6 text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#d8b52f] focus:ring-4 focus:ring-[#d8b52f]/15"
-                  placeholder="alexander@luxespirits.com"
+                  placeholder="alexander@liquorhub.com"
                 />
                 {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
               </div>
@@ -159,7 +159,7 @@ export default function LoginPage() {
               </Link>
             </p>
 
-            <p className="mt-auto pb-3 text-center text-xs text-neutral-400">© 2024 Luxe Spirits Distillery. All Rights Reserved.</p>
+            <p className="mt-auto pb-3 text-center text-xs text-neutral-400">Copyright 2024 Liquor Hub Distillery. All Rights Reserved.</p>
           </div>
         </section>
       </div>

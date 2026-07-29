@@ -14,7 +14,7 @@ export default async function OrdersPage() {
     <main className="mx-auto max-w-5xl px-5 py-12 lg:px-8">
       <AutoRefresh intervalMs={8000} />
       <h1 className="text-4xl font-bold">My Orders</h1>
-      <p className="mt-3 text-neutral-600">A record of every order you&apos;ve placed with Luxe Spirits.</p>
+      <p className="mt-3 text-neutral-600">A record of every order you&apos;ve placed with Liquor Hub.</p>
 
       {orders.length === 0 ? (
         <div className="mt-16 rounded-lg bg-white p-16 text-center shadow-sm ring-1 ring-black/5">

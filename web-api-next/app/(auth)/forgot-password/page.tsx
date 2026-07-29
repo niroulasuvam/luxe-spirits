@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 {...register("email")}
                 className="h-14 w-full rounded-lg border border-neutral-200 bg-transparent px-6 text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-[#d8b52f] focus:ring-4 focus:ring-[#d8b52f]/15"
-                placeholder="alexander@luxespirits.com"
+                placeholder="alexander@liquorhub.com"
               />
               {errors.email && <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>}
             </div>

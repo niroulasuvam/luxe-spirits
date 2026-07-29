@@ -6,22 +6,22 @@ import { handleChangePassword } from "@/lib/actions/user-action";
 import { useActionState } from "react";
 
 export function SettingsPanel() {
-  const [dayMode, setDayMode] = useState(() => typeof window !== "undefined" && localStorage.getItem("luxe_appearance") === "day");
-  const [notifications, setNotifications] = useState(() => typeof window === "undefined" || localStorage.getItem("luxe_notifications") !== "false");
+  const [dayMode, setDayMode] = useState(() => typeof window !== "undefined" && localStorage.getItem("liquorhub_appearance") === "day");
+  const [notifications, setNotifications] = useState(() => typeof window === "undefined" || localStorage.getItem("liquorhub_notifications") !== "false");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordState, passwordAction, isChangingPassword] = useActionState(handleChangePassword, { success: false, message: "" });
 
   useEffect(() => {
-    localStorage.setItem("luxe_appearance", dayMode ? "day" : "luxe");
-    localStorage.removeItem("luxe_dark_mode");
+    localStorage.setItem("liquorhub_appearance", dayMode ? "day" : "night");
+    localStorage.removeItem("liquorhub_dark_mode");
     document.documentElement.classList.remove("dark");
     document.documentElement.classList.toggle("light", dayMode);
   }, [dayMode]);
 
   useEffect(() => {
-    localStorage.setItem("luxe_notifications", String(notifications));
+    localStorage.setItem("liquorhub_notifications", String(notifications));
   }, [notifications]);
 
   const toggleClass = (checked: boolean) =>
@@ -40,7 +40,7 @@ export function SettingsPanel() {
             </span>
             <span>
               <span className="block font-semibold">Day Mode</span>
-              <span className="text-sm text-neutral-500">Switch between the Luxe dark style and a lighter day style.</span>
+              <span className="text-sm text-neutral-500">Switch between the Liquor Hub dark style and a lighter day style.</span>
             </span>
           </span>
           <button type="button" role="switch" aria-checked={dayMode} onClick={() => setDayMode((value) => !value)} className={toggleClass(dayMode)}>

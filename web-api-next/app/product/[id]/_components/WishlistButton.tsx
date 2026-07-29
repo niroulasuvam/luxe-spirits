@@ -20,7 +20,7 @@ export function WishlistButton({ productId, initiallyWishlisted }: { productId: 
           router.push("/login");
         }
       } catch {
-        // silently ignore — the button just stays in its current state
+        // silently ignore - the button just stays in its current state
       }
     });
   };

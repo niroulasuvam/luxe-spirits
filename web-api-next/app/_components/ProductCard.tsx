@@ -41,7 +41,7 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <div className="truncate text-sm font-medium text-neutral-900">{product.name}</div>
         <div className="mt-1 flex items-center gap-1 text-[11px] text-[#c69c14]">
-          {"★★★★★"}
+          {"*****"}
           <span className="text-neutral-500">({product.reviewCount})</span>
         </div>
       </Link>
@@ -56,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
           type="button"
           onClick={handleAddToCart}
           aria-label={`Add ${product.name} to cart`}
-          title={status === "failed" ? "Couldn't add to cart — try again" : undefined}
+          title={status === "failed" ? "Couldn't add to cart - try again" : undefined}
           className={`grid h-8 w-8 place-items-center rounded-full transition ${
             status === "added"
               ? "bg-emerald-500 text-white"

@@ -4,8 +4,8 @@ import { CartProvider } from "@/lib/cart/cart-context";
 import { handleGetCart } from "@/lib/actions/cart-action";
 
 export const metadata: Metadata = {
-  title: "Luxe Spirits",
-  description: "Member portal for Luxe Spirits.",
+  title: "Liquor Hub",
+  description: "Member portal for Liquor Hub.",
 };
 
 export default async function RootLayout({
@@ -22,7 +22,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
 try {
-  document.documentElement.classList.toggle("light", localStorage.getItem("luxe_appearance") === "day");
+  document.documentElement.classList.toggle("light", localStorage.getItem("liquorhub_appearance") === "day");
   document.documentElement.classList.remove("dark");
 } catch {}
             `,

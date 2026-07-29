@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-[#0d0f12] text-[#f4f0e8]">
       <div className="grid min-h-screen lg:grid-cols-[240px_1fr]">
         <aside className="border-r border-[#313942] bg-[#111418] p-6">
-          <Link href="/admin" className="text-2xl font-bold text-[#c9a449]">Luxe Admin</Link>
+          <Link href="/admin" className="text-2xl font-bold text-[#c9a449]">Liquor Hub Admin</Link>
           <nav className="mt-10 space-y-2">
             {user?.role === "admin" && nav.map((item) => (
               <Link key={item.href} href={item.href} className="block rounded-lg px-4 py-3 text-sm font-semibold text-[#cbd5e1] hover:bg-[#242b33] hover:text-[#f2c14e]">

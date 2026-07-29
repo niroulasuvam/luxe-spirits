@@ -43,7 +43,7 @@ export function AddToCartPanel({ product }: { product: Product }) {
           status === "failed" ? "bg-red-500 text-white" : "bg-[#d8b52f] text-[#3c3106] hover:bg-[#c9a828]"
         }`}
       >
-        {status === "added" ? "Added to Cart ✓" : status === "failed" ? "Couldn't add — try again" : "Add to Cart"}
+        {status === "added" ? "Added to Cart ✓" : status === "failed" ? "Couldn't add - try again" : "Add to Cart"}
       </button>
       {status === "added" && (
         <button
